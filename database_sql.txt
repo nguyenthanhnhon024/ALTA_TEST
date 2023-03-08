@@ -71,7 +71,7 @@ FROM dbo.BangDiem d
 WHERE d.NamHoc = 2023
 GROUP BY d.MaHV, d.MaMH
 
-SELECT hv.MaHV, hv.TenHV, AVG(t.DiemTBMon) AS DiemTBNH, 2023 AS NamHoc
+SELECT TOP 1 hv.MaHV, hv.TenHV, AVG(t.DiemTBMon) AS DiemTBNH, 2023 AS NamHoc
 FROM #TableTmp t
 INNER JOIN dbo.HocVien hv ON hv.MaHV = t.MaHV
 GROUP BY hv.MaHV, hv.TenHV

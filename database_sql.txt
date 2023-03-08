@@ -1,0 +1,81 @@
+CREATE DATABASE SCHOOLS;
+
+GO
+
+USE SCHOOLS;
+
+GO
+
+CREATE TABLE HocVien (
+    MaHV INT PRIMARY KEY IDENTITY,
+    TenHV VARCHAR(255),
+    Lop VARCHAR(3)
+);
+
+GO
+
+CREATE TABLE MonHoc (
+    MaMH INT PRIMARY KEY IDENTITY,
+    TenMH VARCHAR(255)
+);
+
+GO
+
+CREATE TABLE BangDiem (
+    MaHP INT PRIMARY KEY IDENTITY,
+    MaHV INT FOREIGN KEY REFERENCES HocVien(MaHV),
+	MaMH INT FOREIGN KEY REFERENCES MonHoc(MaMH),
+	Diem FLOAT,
+	HeSo INT,
+	NamHoc INT
+);
+
+GO
+
+/*
+Viết câu lệnh truy vấn lấy ra Danh sách các học viên phải học lại trong năm học
+2023 và điểm trung bình theo môn học (DiemTBMon) đó của học viên, Biết nếu
+điểm trung bình theo môn học dưới 5.0 thì học viên phải học lại. Thông tin lấy ra
+bao gồm (MaHV, TenHV, TenMH, DiemTBMon). Với DiemTBMon = Diem *
+HeSo / Tổng HeSo.
+*/
+SELECT d.MaHV, d.MaMH , SUM(d.Diem*d.HeSo)/SUM(d.HeSo) AS DiemTBMon
+INTO #TableTmp
+FROM dbo.BangDiem d
+WHERE d.NamHoc = 2023
+GROUP BY d.MaHV, d.MaMH
+HAVING SUM(d.Diem*d.HeSo)/(SUM(d.HeSo)) < 5
+
+GO
+
+SELECT hv.MaHV, hv.TenHV, mh.TenMH, t.DiemTBMon
+FROM #TableTmp t
+INNER JOIN dbo.HocVien hv ON hv.MaHV = t.MaHV
+INNER JOIN dbo.MonHoc mh ON mh.MaMH = t.MaMH
+
+GO
+
+DROP TABLE #TableTmp
+
+GO
+
+/*
+Tìm ra người có điểm trung bình năm học (DiemTBNH) 2023 cao nhất của lớp 7A1
+bao gồm (MaHV, TenHV, DiemTBNH, NamHoc). Với DiemTBNH = Tổng
+DiemTBMon / Tổng số môn học.
+*/
+
+SELECT d.MaHV, d.MaMH, SUM(d.Diem*d.HeSo)/SUM(d.HeSo) AS DiemTBMon
+INTO #TableTmp
+FROM dbo.BangDiem d
+WHERE d.NamHoc = 2023
+GROUP BY d.MaHV, d.MaMH
+
+SELECT hv.MaHV, hv.TenHV, AVG(t.DiemTBMon) AS DiemTBNH, 2023 AS NamHoc
+FROM #TableTmp t
+INNER JOIN dbo.HocVien hv ON hv.MaHV = t.MaHV
+GROUP BY hv.MaHV, hv.TenHV
+
+GO
+
+DROP TABLE #TableTmp
